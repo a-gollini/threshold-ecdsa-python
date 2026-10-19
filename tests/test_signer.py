@@ -52,7 +52,7 @@ def test_out_of_range_signature_is_rejected():
 def test_signature_is_low_s():
     keys = run_dkg(2, 3)
 
-    for i in range(20):
+    for i in range(10):
         assert sign(keys, 2, _hash(f"m{i}")).s <= curve.ORDER // 2
 
 

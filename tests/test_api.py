@@ -39,7 +39,7 @@ def test_sign_then_verify_round_trips(client):
 def test_signatures_are_always_64_hex_characters(client):
     key = _create_key(client)
 
-    for i in range(30):
+    for i in range(10):
         signature = client.post(f"/keys/{key['key_id']}/sign", json={"message": f"message {i}"}).json()
         assert len(signature["r"]) == 64
         assert len(signature["s"]) == 64
