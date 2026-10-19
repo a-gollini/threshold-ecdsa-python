@@ -95,7 +95,7 @@ pytest
 ## Roadmap
 
 - [x] Port of the .NET design to Python
-- [ ] Port to Rust
+- [x] Port to Rust: [threshold-ecdsa-rust](https://github.com/a-gollini/threshold-ecdsa-rust)
 
 ## References
 
