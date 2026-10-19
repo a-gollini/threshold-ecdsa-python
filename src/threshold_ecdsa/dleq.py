@@ -42,5 +42,8 @@ class DleqProof:
 def _challenge(*points_and_context: Point | str) -> int:
     data = bytearray(_DOMAIN)
     for part in points_and_context:
-        data += part.encode() if isinstance(part, Point) else part.encode("utf-8")
+        if isinstance(part, Point):
+            data += b"\x00" if part.is_infinity else part.encode()  # SEC1 encodes infinity as one zero byte
+        else:
+            data += part.encode("utf-8")
     return curve.hash_to_scalar(hashlib.sha256(data).digest())
