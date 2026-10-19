@@ -38,6 +38,15 @@ class Point:
         x = (slope * slope - self.x - other.x) % P
         return Point(x, (slope * (self.x - x) - self.y) % P)
 
+    def __neg__(self) -> Point:
+        if self.is_infinity:
+            return self
+        assert self.y is not None
+        return Point(self.x, (-self.y) % P)
+
+    def __sub__(self, other: Point) -> Point:
+        return self + (-other)
+
     def encode(self) -> bytes:
         """SEC1 compressed encoding (33 bytes)."""
         if self.x is None or self.y is None:
@@ -55,6 +64,11 @@ def mod(value: int) -> int:
 
 def inverse(value: int) -> int:
     return pow(mod(value), -1, ORDER)
+
+
+def hash_to_scalar(digest: bytes) -> int:
+    """Interprets (at most the first 32 bytes of) a hash as a scalar."""
+    return mod(int.from_bytes(digest[:32], "big"))
 
 
 def random_scalar() -> int:

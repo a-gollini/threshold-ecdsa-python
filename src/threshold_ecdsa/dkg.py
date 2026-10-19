@@ -15,11 +15,19 @@ from .curve import Point
 
 @dataclass(frozen=True)
 class KeyShare:
-    """What a single party holds after key generation."""
+    """What a single party holds after key generation.
+
+    `public_shares` holds the public image x_j * G of every party's share (entry j-1 for party j):
+    it is public and lets anyone check proofs about shares.
+    """
 
     index: int
     secret_share: int
     public_key: Point
+    public_shares: tuple[Point, ...]
+
+    def public_share_of(self, index: int) -> Point:
+        return self.public_shares[index - 1]
 
 
 class DkgComplaintError(Exception):
@@ -44,9 +52,15 @@ def run(threshold: int, parties: int) -> list[KeyShare]:
             total += received.value
         secret_shares.append(curve.mod(total))
 
-    # The group public key is the sum of each dealer's constant-term commitment.
-    public_key = curve.INFINITY
-    for dealing in dealings:
-        public_key = public_key + dealing.commitments.public_key
+    # Summing every dealer's commitments coefficient-wise gives commitments to the group polynomial.
+    # Its constant term is the group public key, and evaluating it at i gives party i's public share.
+    group_commitments = shamir.FeldmanCommitments(
+        tuple(
+            sum((d.commitments.coefficients[j] for d in dealings), curve.INFINITY)
+            for j in range(threshold)
+        )
+    )
+    public_key = group_commitments.public_key
+    public_shares = tuple(shamir.public_share(i, group_commitments) for i in range(1, parties + 1))
 
-    return [KeyShare(i + 1, s, public_key) for i, s in enumerate(secret_shares)]
+    return [KeyShare(i + 1, s, public_key, public_shares) for i, s in enumerate(secret_shares)]

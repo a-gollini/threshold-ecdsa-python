@@ -49,12 +49,17 @@ def deal(secret: int, threshold: int, parties: int) -> DealtSecret:
 
 def verify(share: Share, commitments: FeldmanCommitments) -> bool:
     """Checks s_i * G == sum_j (i^j * C_j)."""
-    expected = commitments.coefficients[0]
+    return curve.multiply_base(share.value) == public_share(share.index, commitments)
+
+
+def public_share(index: int, commitments: FeldmanCommitments) -> Point:
+    """The public image of party i's share, sum_j (i^j * C_j) = f(i) * G, computable by anyone."""
+    result = commitments.coefficients[0]
     power = 1
     for commitment in commitments.coefficients[1:]:
-        power = curve.mod(power * share.index)
-        expected = expected + curve.multiply(commitment, power)
-    return curve.multiply_base(share.value) == expected
+        power = curve.mod(power * index)
+        result = result + curve.multiply(commitment, power)
+    return result
 
 
 def reconstruct(shares: Sequence[Share]) -> int:
@@ -85,6 +90,7 @@ __all__ = [
     "Share",
     "deal",
     "lagrange_coefficient_at_zero",
+    "public_share",
     "reconstruct",
     "verify",
 ]
